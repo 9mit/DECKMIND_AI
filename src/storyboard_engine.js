@@ -114,8 +114,8 @@
     const targetSlideCount = options.targetSlideCount || 8;
     const theme = options.theme || 'rose_cream';
     let framework = options.framework || 'auto';
-    const audience = options.audience || 'general'; // developers, executives, investors, students, general
-    const depth = options.depth || 'balanced'; // summary, balanced, detailed
+    const audience = options.audience || 'general';
+    const depth = options.depth || 'balanced';
     const turns = analyzedData.turns || [];
     const citations = analyzedData.citations || [];
     const entities = analyzedData.entities || [];
@@ -432,7 +432,67 @@
     }
 
     /* =========================================================================
-     * SLIDE 9: STRATEGIC CONCLUSION & NEXT STEPS
+     * SLIDE 9: QUAD MATRIX (2x2 Strategic / SWOT / Risk-Impact Grid)
+     * ========================================================================= */
+    if (targetSlideCount >= 10) {
+      slides.push({
+        id: 'slide_quad',
+        slideIndex: slides.length + 1,
+        type: 'quad_matrix',
+        badgeTag: 'STRATEGIC MATRIX (2x2)',
+        title: 'Strategic Priorities & Impact Matrix',
+        subtitle: 'Multi-dimensional evaluation of technical feasibility and operational velocity.',
+        quadrants: [
+          {
+            title: 'High Impact / High Velocity',
+            desc: 'Core architecture refactoring, automated API testing, and in-memory cache sync.',
+            badge: 'P0 IMMEDIATE'
+          },
+          {
+            title: 'High Impact / Strategic Moat',
+            desc: 'Multi-region failover, proprietary telemetry indexing, and Zero-Trust isolation.',
+            badge: 'P1 STRATEGIC'
+          },
+          {
+            title: 'Foundational / Hygiene',
+            desc: 'Audit logging compliance, dependency pruning, and automated linting pipelines.',
+            badge: 'P2 FOUNDATIONAL'
+          },
+          {
+            title: 'Exploratory / Emerging',
+            desc: 'Edge LLM fine-tuning, autonomous agent orchestration, and procedural graph queries.',
+            badge: 'P3 EXPLORATORY'
+          }
+        ],
+        visualType: 'geometric_art',
+        citations: citations.slice(0, 4),
+        speakerNotes: `This 2x2 matrix categorizes deliverables by impact and velocity, guaranteeing the engineering team prioritizes P0 immediate wins without sacrificing foundational stability.`
+      });
+    }
+
+    /* =========================================================================
+     * SLIDE 10: QUOTE CALLOUT (Executive Pull-Quote)
+     * ========================================================================= */
+    if (targetSlideCount >= 11) {
+      const quoteText = solutionText || 'Transforming conversational intelligence into auditable, executive-grade architectural presentations with zero third-party cloud leakage.';
+      slides.push({
+        id: 'slide_quote',
+        slideIndex: slides.length + 1,
+        type: 'quote_callout',
+        badgeTag: 'EXECUTIVE THESIS',
+        title: 'Pivotal Architectural Guiding Principle',
+        subtitle: 'Core operational directive agreed upon in the planning consultation.',
+        quote: `"${quoteText}"`,
+        author: 'Executive Architecture Team',
+        role: 'DeckMind Intelligence Session Synthesis',
+        visualType: 'geometric_art',
+        citations: citations.slice(0, 2),
+        speakerNotes: `This quote embodies our mission statement for the project: total reliability, transparent verifiable citations, and zero operational compromise.`
+      });
+    }
+
+    /* =========================================================================
+     * SLIDE: STRATEGIC CONCLUSION & NEXT STEPS
      * ========================================================================= */
     if (targetSlideCount >= 9 || slides.length < targetSlideCount) {
       slides.push({

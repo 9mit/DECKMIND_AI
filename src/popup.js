@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const segmentedBtns = document.querySelectorAll('.segmented-btn');
   const btnOpenStudio = document.getElementById('btn-open-studio');
   const btnQuickPptx = document.getElementById('btn-quick-pptx');
+  const btnQuickHtml = document.getElementById('btn-quick-html');
   const btnQuickDocx = document.getElementById('btn-quick-docx');
   const btnQuickXlsx = document.getElementById('btn-quick-xlsx');
   const btnQuickFlow = document.getElementById('btn-quick-flow');
@@ -185,6 +186,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('[DeckMind AI] Quick PPTX error:', err);
       } finally {
         btnQuickPptx.disabled = false;
+      }
+    });
+  }
+
+  // Action: 1-Click Quick Standalone HTML Deck Download
+  if (btnQuickHtml) {
+    btnQuickHtml.addEventListener('click', () => {
+      btnQuickHtml.disabled = true;
+      try {
+        const chat = getEffectiveChat();
+        const analyzed = window.DeckMindExtractor.analyzeChat(chat);
+        const deck = window.DeckMindStoryboard.generateDeck(analyzed, {
+          targetSlideCount,
+          theme: activeTheme,
+          framework: activeFramework,
+          audience: activeAudience
+        });
+        window.DeckMindExport.generateStandaloneHtmlDeck(deck);
+      } catch (err) {
+        console.error('[DeckMind AI] Quick HTML deck error:', err);
+      } finally {
+        btnQuickHtml.disabled = false;
       }
     });
   }

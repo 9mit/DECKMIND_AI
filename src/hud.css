@@ -1,16 +1,16 @@
-/* DeckMind AI — Adaptive Stealth In-Page Action Dock (Zero Eye Strain Edition) */
+/* DeckMind AI — Flagship Luxury In-Page Dynamic Capsule & Slide Previewer */
 
 #deckmind-hud-container {
   position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: 2147483647;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
   pointer-events: auto;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   touch-action: none;
-  opacity: 0.75;
+  opacity: 0.94;
 }
 
 #deckmind-hud-container:hover,
@@ -22,58 +22,57 @@
   transition: none !important;
   cursor: grabbing !important;
   opacity: 1 !important;
-  transform: scale(1.02) !important;
+  transform: scale(1.03) !important;
 }
 
 /* =========================================================================
- * 1. COMPACT / EXPANDABLE DOCK CONTAINER
+ * 1. GLASSMORPHIC LUXURY CAPSULE
  * ========================================================================= */
 .deckmind-hud-pill {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(24, 24, 27, 0.15);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  padding: 6px 10px 6px 8px;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1.5px solid rgba(24, 24, 27, 0.12);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  padding: 6px 12px 6px 9px;
   border-radius: 9999px;
   color: #18181B;
   font-size: 12px;
   cursor: grab;
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  max-width: 480px;
-  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 580px;
 }
 
-/* Sleek Dark Mode Adaptation (ChatGPT / Claude / Gemini Dark Mode) */
+/* Dark Mode Luxury (ChatGPT / Claude / Gemini Dark Mode) */
 @media (prefers-color-scheme: dark) {
   .deckmind-hud-pill {
-    background: rgba(24, 24, 27, 0.88);
-    border-color: rgba(255, 255, 255, 0.14);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.2);
+    background: rgba(18, 18, 22, 0.92);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     color: #F4F4F5;
   }
 }
 
-/* Force Dark Mode Class if Parent Page is Dark */
 .deckmind-dark-mode .deckmind-hud-pill {
-  background: rgba(24, 24, 27, 0.9) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.2) !important;
+  background: rgba(18, 18, 22, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
   color: #F4F4F5 !important;
 }
 
 .deckmind-hud-pill:hover {
   border-color: #FB7185;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), 0 0 16px rgba(251, 113, 133, 0.2);
-  transform: translateY(-1px);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.14), 0 0 24px rgba(251, 113, 133, 0.28);
+  transform: translateY(-2px);
 }
 
 .deckmind-dark-mode .deckmind-hud-pill:hover {
   border-color: #FB7185 !important;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(251, 113, 133, 0.25) !important;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.75), 0 0 26px rgba(251, 113, 133, 0.35) !important;
 }
 
 /* =========================================================================
@@ -83,8 +82,8 @@
   padding: 4px;
   gap: 0;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   justify-content: center;
 }
 
@@ -96,68 +95,95 @@
 }
 
 #deckmind-hud-container.deckmind-collapsed .deckmind-hud-icon {
-  width: 28px;
-  height: 28px;
-  font-size: 10.5px;
+  width: 32px;
+  height: 32px;
+  font-size: 11px;
 }
 
 /* Drag Grip */
 .deckmind-drag-grip {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 2px 3px 2px 1px;
+  gap: 2.5px;
+  padding: 3px 3px 3px 1px;
   cursor: grab;
   opacity: 0.35;
   transition: opacity 0.2s ease;
 }
 
 .deckmind-hud-pill:hover .deckmind-drag-grip {
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 .deckmind-drag-dots {
   display: flex;
-  gap: 2px;
+  gap: 2.5px;
 }
 
 .deckmind-drag-dot {
-  width: 2px;
-  height: 2px;
+  width: 2.5px;
+  height: 2.5px;
   border-radius: 50%;
   background: currentColor;
 }
 
-/* Brand Icon Badge */
-.deckmind-hud-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  background: #18181B;
+/* Brand Icon Badge with Live Pulse */
+.deckmind-hud-icon-wrap {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9.5px;
+}
+
+.deckmind-hud-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #18181B 0%, #27272A 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
   font-weight: 800;
   color: #FB7185;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(251, 113, 133, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .deckmind-hud-icon:hover {
-  transform: scale(1.08);
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(251, 113, 133, 0.6);
 }
 
 .deckmind-dark-mode .deckmind-hud-icon {
-  background: #27272A;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, #27272A 0%, #3F3F46 100%);
+  border-color: rgba(251, 113, 133, 0.5);
 }
 
-/* Label & Counter */
+/* Pulse Indicator */
+.deckmind-pulse-indicator {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px #10B981;
+  animation: deckmindPulse 2s infinite ease-in-out;
+}
+
+@keyframes deckmindPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Label & Live Counter */
 .deckmind-hud-label {
   display: flex;
   flex-direction: column;
@@ -166,18 +192,41 @@
   white-space: nowrap;
 }
 
+.deckmind-hud-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .deckmind-hud-title {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.2px;
   color: inherit;
 }
 
+.deckmind-hud-platform-tag {
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(251, 113, 133, 0.15);
+  color: #BE185D;
+  letter-spacing: 0.3px;
+}
+
+.deckmind-dark-mode .deckmind-hud-platform-tag {
+  background: rgba(251, 113, 133, 0.2);
+  color: #FDA4AF;
+}
+
 .deckmind-hud-counter {
   font-size: 9.5px;
-  opacity: 0.65;
+  opacity: 0.7;
   font-weight: 500;
   font-family: monospace;
+  margin-top: 1px;
 }
 
 /* Action Buttons */
@@ -185,29 +234,31 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-left: 2px;
+  margin-left: 3px;
   border-left: 1px solid rgba(128, 128, 128, 0.2);
-  padding-left: 6px;
+  padding-left: 7px;
   cursor: default;
 }
 
 .deckmind-hud-btn {
-  background: rgba(251, 113, 133, 0.1);
-  border: 1px solid rgba(251, 113, 133, 0.3);
+  background: rgba(251, 113, 133, 0.09);
+  border: 1px solid rgba(251, 113, 133, 0.28);
   color: #BE185D;
-  padding: 3px 8px;
+  padding: 3.5px 9px;
   border-radius: 9999px;
   font-size: 10.5px;
   font-weight: 700;
-  font-family: monospace;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .deckmind-dark-mode .deckmind-hud-btn {
-  background: rgba(251, 113, 133, 0.15);
-  border-color: rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.14);
+  border-color: rgba(251, 113, 133, 0.32);
   color: #FDA4AF;
 }
 
@@ -216,27 +267,37 @@
   color: #FFFFFF;
   border-color: #FB7185;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(251, 113, 133, 0.4);
+  box-shadow: 0 4px 12px rgba(251, 113, 133, 0.35);
 }
 
 .deckmind-hud-btn.primary {
-  background: #18181B;
+  background: linear-gradient(135deg, #18181B 0%, #27272A 100%);
   border: 1px solid #18181B;
   color: #FFFFFF;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .deckmind-dark-mode .deckmind-hud-btn.primary {
-  background: #FFFFFF;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F4F4F5 100%);
   border-color: #FFFFFF;
   color: #18181B;
 }
 
 .deckmind-hud-btn.primary:hover {
-  background: #FB7185;
+  background: linear-gradient(135deg, #FB7185 0%, #F43F5E 100%);
   border-color: #FB7185;
   color: #FFFFFF;
-  box-shadow: 0 2px 10px rgba(251, 113, 133, 0.4);
+  box-shadow: 0 4px 16px rgba(251, 113, 133, 0.5);
+}
+
+.deckmind-hud-btn.gold {
+  background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+  border: 1px solid #D97706;
+  color: #FFFFFF;
+}
+
+.deckmind-hud-btn.gold:hover {
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
 }
 
 /* Quick Collapse / Toggle Button */
@@ -247,7 +308,7 @@
   opacity: 0.4;
   cursor: pointer;
   padding: 0 2px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   line-height: 1;
   transition: opacity 0.15s, transform 0.15s;
@@ -256,24 +317,24 @@
 .deckmind-hud-collapse-btn:hover {
   opacity: 1;
   color: #FB7185;
-  transform: scale(1.15);
+  transform: scale(1.2);
 }
 
 /* Toast notification */
 .deckmind-toast {
   position: fixed;
-  bottom: 80px;
+  bottom: 82px;
   right: 24px;
   z-index: 2147483647;
-  background: rgba(24, 24, 27, 0.92);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(251, 113, 133, 0.4);
-  border-radius: 8px;
-  padding: 8px 14px;
+  background: rgba(18, 18, 22, 0.94);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(251, 113, 133, 0.5);
+  border-radius: 9px;
+  padding: 9px 16px;
   color: #FFFFFF;
   font-size: 12px;
   font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 12px rgba(251, 113, 133, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 16px rgba(251, 113, 133, 0.25);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -292,7 +353,183 @@
 .deckmind-highlighted-turn {
   outline: 2px solid #FB7185 !important;
   outline-offset: 4px !important;
-  box-shadow: 0 0 25px rgba(251, 113, 133, 0.4) !important;
-  transition: all 0.3s ease !important;
+  box-shadow: 0 0 28px rgba(251, 113, 133, 0.45) !important;
+  transition: all 0.35s ease !important;
   border-radius: 8px !important;
+}
+
+/* =========================================================================
+ * 3. IN-PAGE INSTANT SLIDE DECK PREVIEW MODAL
+ * ========================================================================= */
+.deckmind-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(12, 10, 9, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 2147483647;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.deckmind-preview-overlay.active {
+  display: flex;
+  animation: deckmindFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes deckmindFadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.deckmind-preview-modal {
+  background: #FFFFFF;
+  border-radius: 18px;
+  width: 960px;
+  max-width: 95vw;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 0 1.5px rgba(24, 24, 27, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #18181B;
+}
+
+.deckmind-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 1.5px solid #EAE5DD;
+  background: #FAF7F2;
+}
+
+.deckmind-preview-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deckmind-preview-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #18181B;
+  color: #FB7185;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.deckmind-preview-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.deckmind-preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deckmind-preview-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #71717A;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.deckmind-preview-close:hover {
+  background: #E4E4E7;
+  color: #18181B;
+}
+
+.deckmind-preview-body {
+  padding: 24px;
+  background: #F4F1EA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.deckmind-preview-canvas {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 480px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1.5px solid #18181B;
+  box-shadow: 4px 4px 0px #18181B;
+  overflow: hidden;
+  padding: 24px 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.deckmind-preview-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px;
+  border-top: 1.5px solid #EAE5DD;
+  background: #FFFFFF;
+}
+
+.deckmind-preview-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deckmind-preview-indicator {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #52525B;
+}
+
+.deckmind-preview-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #18181B;
+  background: #FFFFFF;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #18181B;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.deckmind-preview-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #18181B;
+}
+
+.deckmind-preview-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #18181B;
+}
+
+.deckmind-preview-btn.primary {
+  background: #FB7185;
+  color: #FFFFFF;
+  border-color: #18181B;
 }

@@ -1292,3 +1292,167 @@ body {
   color: var(--text-primary);
 }
 
+/* =========================================================================
+ * 12. NEW LUXURY LAYOUTS & ACTION BAR
+ * ========================================================================= */
+.quick-action-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 6px;
+}
+
+/* 2x2 Quad Matrix */
+.quad-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+  flex: 1;
+  margin-top: 16px;
+}
+
+.quad-card {
+  border: 1.5px solid var(--border-retro);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 2px 2px 0px var(--border-retro);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease;
+}
+
+.quad-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-retro);
+}
+
+.quad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.quad-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  font-family: monospace;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.quad-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.quad-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Editorial Pull Quote */
+.quote-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  padding: 20px 40px;
+  text-align: center;
+  position: relative;
+}
+
+.quote-mark {
+  font-size: 72px;
+  font-family: Georgia, serif;
+  line-height: 1;
+  color: var(--accent-pink);
+  margin-bottom: -10px;
+  opacity: 0.8;
+}
+
+.quote-text {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--text-primary);
+  max-width: 780px;
+  font-style: italic;
+}
+
+.quote-author-wrap {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.quote-author {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent-black);
+}
+
+.quote-role {
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+/* Strategic Conclusion / Action Plan */
+.action-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  flex: 1;
+  margin-top: 20px;
+}
+
+.action-plan-card {
+  border: 1.5px solid var(--border-retro);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 3px 3px 0px var(--border-retro);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease;
+}
+
+.action-plan-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--border-retro);
+}
+
+.action-step-num {
+  font-size: 11px;
+  font-weight: 800;
+  font-family: monospace;
+  color: var(--accent-pink);
+  background: var(--accent-pink-soft);
+  padding: 2px 7px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-bottom: 8px;
+}
+
+.action-card-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.action-card-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+

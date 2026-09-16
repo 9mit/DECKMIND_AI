@@ -3,7 +3,8 @@
  * 
  * Lightweight, safe DOM scraper and draggable HUD injector for AI chat interfaces.
  * Allows users to drag and reposition the HUD anywhere across the screen with persistent
- * coordinates, debounced observers, and zero host page interference.
+ * coordinates, debounced observers, zero host page interference, tactile audio feedback,
+ * and an instant in-page slide deck preview modal.
  */
 
 'use strict';
@@ -22,9 +23,15 @@
 
   let hudContainer = null;
   let toastEl = null;
+  let previewOverlayEl = null;
   let lastTurnCount = 0;
   let scanDebounceTimer = null;
   let isScanning = false;
+  let audioCtx = null;
+
+  // In-Page Preview State
+  let previewSlides = [];
+  let previewActiveIdx = 0;
 
   // Drag state
   let isDragging = false;
@@ -35,13 +42,52 @@
   let initialTop = 0;
 
   /**
+   * Synthesize Subtle Tactile Audio via HTML5 Web Audio API (100% Offline, Zero Assets)
+   */
+  function playTactileSound(type = 'pop') {
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+      if (type === 'pop') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.exponentialRampToValueAtTime(840, now + 0.04);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.start(now);
+        osc.stop(now + 0.04);
+      } else if (type === 'chime') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(783.99, now + 0.06); // G5
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      }
+    } catch (e) {
+      // Audio autoplay policy fallback
+    }
+  }
+
+  /**
    * Apply coordinates to HUD and toast with viewport clamping
    */
   function applyHUDPosition(x, y, save = false) {
     if (!hudContainer) return;
 
     const pad = 12;
-    const hudW = hudContainer.offsetWidth || 270;
+    const hudW = hudContainer.offsetWidth || 340;
     const hudH = hudContainer.offsetHeight || 44;
     const maxLeft = Math.max(pad, window.innerWidth - hudW - pad);
     const maxTop = Math.max(pad, window.innerHeight - hudH - pad);
@@ -73,7 +119,6 @@
    */
   function initDraggable(pillEl) {
     function onPointerDown(e) {
-      // Don't drag if clicking buttons directly
       if (e.target.tagName === 'BUTTON' || (e.target.closest && e.target.closest('button'))) return;
 
       isDragging = false;
@@ -156,6 +201,11 @@
     try {
       if (document.getElementById('deckmind-hud-container')) return;
 
+      const platformKey = (window.DeckMindParsers && window.DeckMindParsers.detectPlatform) 
+        ? window.DeckMindParsers.detectPlatform(document) 
+        : 'ai';
+      const platformDisplay = platformKey.toUpperCase();
+
       hudContainer = document.createElement('div');
       hudContainer.id = 'deckmind-hud-container';
       hudContainer.innerHTML = `
@@ -164,15 +214,21 @@
             <div class="deckmind-drag-dots"><div class="deckmind-drag-dot"></div><div class="deckmind-drag-dot"></div></div>
             <div class="deckmind-drag-dots"><div class="deckmind-drag-dot"></div><div class="deckmind-drag-dot"></div></div>
           </div>
-          <div class="deckmind-hud-icon" id="deckmind-icon-toggle" title="Toggle Compact Mode">DM</div>
+          <div class="deckmind-hud-icon-wrap" id="deckmind-icon-toggle" title="Toggle Compact Mode">
+            <div class="deckmind-hud-icon">DM</div>
+            <div class="deckmind-pulse-indicator" title="Connected & Ingesting"></div>
+          </div>
           <div class="deckmind-hud-label" id="deckmind-label-click">
-            <span class="deckmind-hud-title">DeckMind AI</span>
+            <div class="deckmind-hud-title-row">
+              <span class="deckmind-hud-title">DeckMind</span>
+              <span class="deckmind-hud-platform-tag" id="deckmind-platform-tag">${platformDisplay}</span>
+            </div>
             <span class="deckmind-hud-counter" id="deckmind-turn-count">Chat Ready</span>
           </div>
           <div class="deckmind-hud-actions">
-            <button class="deckmind-hud-btn" id="deckmind-quick-pptx" title="Instant 1-Click PPTX Presentation">PPTX</button>
-            <button class="deckmind-hud-btn" id="deckmind-quick-docx" title="Instant Word Document Essay (.docx)">DOCX</button>
-            <button class="deckmind-hud-btn" id="deckmind-quick-xlsx" title="Instant Excel Tables (.xlsx)">XLSX</button>
+            <button class="deckmind-hud-btn gold" id="deckmind-quick-preview" title="Instant In-Page Slide Deck Preview">✨ Preview</button>
+            <button class="deckmind-hud-btn" id="deckmind-quick-pptx" title="Instant 1-Click PPTX Presentation">.PPTX</button>
+            <button class="deckmind-hud-btn" id="deckmind-quick-docx" title="Instant Word Essay (.docx)">DOCX</button>
             <button class="deckmind-hud-btn primary" id="deckmind-open-studio" title="Open Presentation Studio">Studio</button>
             <button class="deckmind-hud-collapse-btn" id="deckmind-btn-minimize" title="Minimize to discreet dot">−</button>
           </div>
@@ -184,10 +240,44 @@
       toastEl.id = 'deckmind-toast';
       toastEl.innerHTML = '<span id="deckmind-toast-text">Generating Presentation...</span>';
 
+      // Build In-Page Preview Modal Overlay
+      previewOverlayEl = document.createElement('div');
+      previewOverlayEl.className = 'deckmind-preview-overlay';
+      previewOverlayEl.id = 'deckmind-preview-overlay';
+      previewOverlayEl.innerHTML = `
+        <div class="deckmind-preview-modal">
+          <div class="deckmind-preview-header">
+            <div class="deckmind-preview-brand">
+              <div class="deckmind-preview-logo">DM</div>
+              <span class="deckmind-preview-title" id="deckmind-preview-deck-title">Presentation Preview</span>
+            </div>
+            <div class="deckmind-preview-controls">
+              <button class="deckmind-preview-btn primary" id="deckmind-preview-download-pptx">Download .PPTX</button>
+              <button class="deckmind-preview-btn" id="deckmind-preview-open-studio">Open Full Studio ↗</button>
+              <button class="deckmind-preview-close" id="deckmind-preview-close" title="Close [Esc]">✕</button>
+            </div>
+          </div>
+          <div class="deckmind-preview-body">
+            <div class="deckmind-preview-canvas" id="deckmind-preview-canvas">
+              <!-- Rendered slide preview -->
+            </div>
+          </div>
+          <div class="deckmind-preview-footer">
+            <div class="deckmind-preview-nav">
+              <button class="deckmind-preview-btn" id="deckmind-preview-prev">◀ Previous</button>
+              <span class="deckmind-preview-indicator" id="deckmind-preview-indicator">Slide 1 of 6</span>
+              <button class="deckmind-preview-btn" id="deckmind-preview-next">Next ▶</button>
+            </div>
+            <span style="font-size: 11px; opacity: 0.7; font-family: monospace;">DeckMind AI • Verbatim Grounded</span>
+          </div>
+        </div>
+      `;
+
       const target = document.body || document.documentElement;
       if (target) {
         target.appendChild(hudContainer);
         target.appendChild(toastEl);
+        target.appendChild(previewOverlayEl);
       }
 
       checkAndApplyDarkMode();
@@ -215,6 +305,7 @@
         iconToggle.addEventListener('click', (e) => {
           e.stopPropagation();
           if (hasMoved || isDragging) return;
+          playTactileSound('pop');
           const isCollapsed = hudContainer.classList.toggle('deckmind-collapsed');
           if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
             chrome.storage.local.set({ deckmind_hud_collapsed: isCollapsed });
@@ -227,6 +318,7 @@
       if (btnMinimize) {
         btnMinimize.addEventListener('click', (e) => {
           e.stopPropagation();
+          playTactileSound('pop');
           hudContainer.classList.add('deckmind-collapsed');
           if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
             chrome.storage.local.set({ deckmind_hud_collapsed: true });
@@ -240,53 +332,120 @@
         labelClick.addEventListener('click', (e) => {
           e.stopPropagation();
           if (hasMoved || isDragging) return;
+          playTactileSound('pop');
           triggerOpenStudio();
         });
       }
 
-      // Event Listeners for buttons
+      // Action: Instant In-Page Preview
+      const btnPreview = document.getElementById('deckmind-quick-preview');
+      if (btnPreview) {
+        btnPreview.addEventListener('click', (e) => {
+          e.stopPropagation();
+          playTactileSound('chime');
+          triggerInPagePreview();
+        });
+      }
+
+      // Action: Quick PPTX
       const btnQuick = document.getElementById('deckmind-quick-pptx');
       if (btnQuick) {
         btnQuick.addEventListener('click', (e) => {
           e.stopPropagation();
+          playTactileSound('chime');
           triggerQuickPPTX();
         });
       }
 
+      // Action: Quick DOCX
       const btnDocx = document.getElementById('deckmind-quick-docx');
       if (btnDocx) {
         btnDocx.addEventListener('click', (e) => {
           e.stopPropagation();
+          playTactileSound('pop');
           triggerQuickDOCX();
         });
       }
 
-      const btnXlsx = document.getElementById('deckmind-quick-xlsx');
-      if (btnXlsx) {
-        btnXlsx.addEventListener('click', (e) => {
-          e.stopPropagation();
-          triggerQuickXLSX();
-        });
-      }
-
+      // Action: Studio Launcher
       const btnStudio = document.getElementById('deckmind-open-studio');
       if (btnStudio) {
         btnStudio.addEventListener('click', (e) => {
           e.stopPropagation();
+          playTactileSound('pop');
           triggerOpenStudio();
         });
       }
 
-      // Keyboard Shortcut (Alt+Shift+H) to toggle HUD visibility
+      // Bind Preview Modal Controls
+      const btnClosePreview = document.getElementById('deckmind-preview-close');
+      if (btnClosePreview) {
+        btnClosePreview.addEventListener('click', () => {
+          if (previewOverlayEl) previewOverlayEl.classList.remove('active');
+        });
+      }
+
+      const btnPreviewPrev = document.getElementById('deckmind-preview-prev');
+      if (btnPreviewPrev) {
+        btnPreviewPrev.addEventListener('click', () => {
+          if (previewActiveIdx > 0) {
+            previewActiveIdx--;
+            renderPreviewSlide();
+          }
+        });
+      }
+
+      const btnPreviewNext = document.getElementById('deckmind-preview-next');
+      if (btnPreviewNext) {
+        btnPreviewNext.addEventListener('click', () => {
+          if (previewActiveIdx < previewSlides.length - 1) {
+            previewActiveIdx++;
+            renderPreviewSlide();
+          }
+        });
+      }
+
+      const btnPreviewPptx = document.getElementById('deckmind-preview-download-pptx');
+      if (btnPreviewPptx) {
+        btnPreviewPptx.addEventListener('click', () => {
+          playTactileSound('chime');
+          triggerQuickPPTX();
+        });
+      }
+
+      const btnPreviewStudio = document.getElementById('deckmind-preview-open-studio');
+      if (btnPreviewStudio) {
+        btnPreviewStudio.addEventListener('click', () => {
+          if (previewOverlayEl) previewOverlayEl.classList.remove('active');
+          triggerOpenStudio();
+        });
+      }
+
+      // Keyboard Shortcuts
       window.addEventListener('keydown', (e) => {
         if (e.altKey && e.shiftKey && (e.key === 'H' || e.key === 'h')) {
           if (hudContainer) {
             hudContainer.style.display = hudContainer.style.display === 'none' ? 'block' : 'none';
           }
         }
+        if (previewOverlayEl && previewOverlayEl.classList.contains('active')) {
+          if (e.key === 'Escape') {
+            previewOverlayEl.classList.remove('active');
+          } else if (e.key === 'ArrowRight' || e.key === 'Space') {
+            if (previewActiveIdx < previewSlides.length - 1) {
+              previewActiveIdx++;
+              renderPreviewSlide();
+            }
+          } else if (e.key === 'ArrowLeft') {
+            if (previewActiveIdx > 0) {
+              previewActiveIdx--;
+              renderPreviewSlide();
+            }
+          }
+        }
       });
 
-      // Adjust position on window resize to prevent off-screen HUD
+      // Window resize adjustment
       window.addEventListener('resize', () => {
         if (hudContainer && hudContainer.style.left) {
           const rect = hudContainer.getBoundingClientRect();
@@ -295,7 +454,6 @@
         checkAndApplyDarkMode();
       });
 
-      // Initial Delayed Scan
       scheduleScan(1000);
     } catch (err) {
       console.warn('[DeckMind AI] HUD initialization skipped:', err);
@@ -314,9 +472,7 @@
       setTimeout(() => {
         if (toastEl) toastEl.classList.remove('show');
       }, duration);
-    } catch (e) {
-      // Ignore toast render errors
-    }
+    } catch (e) {}
   }
 
   /**
@@ -343,19 +499,22 @@
 
       const counterEl = document.getElementById('deckmind-turn-count');
       if (counterEl) {
-        const newText = turnCount > 0 ? `${turnCount} Turns Detected` : 'Chat Ready';
+        const newText = turnCount > 0 ? `${turnCount} Turns Captured` : 'Chat Ready';
         if (counterEl.textContent !== newText) {
           counterEl.textContent = newText;
         }
+      }
+
+      const platformTag = document.getElementById('deckmind-platform-tag');
+      if (platformTag && chat.platform) {
+        platformTag.textContent = chat.platform.toUpperCase();
       }
 
       if (turnCount !== lastTurnCount) {
         lastTurnCount = turnCount;
         if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
           chrome.runtime.sendMessage({ action: 'UPDATE_BADGE', count: turnCount }, () => {
-            if (chrome.runtime.lastError) {
-              // Ignore disconnected port errors
-            }
+            if (chrome.runtime.lastError) {}
           });
         }
       }
@@ -394,6 +553,101 @@
   }
 
   /**
+   * Instant In-Page Slide Deck Preview Generator
+   */
+  function triggerInPagePreview() {
+    const payload = packageCurrentChat();
+    if (!payload.turns || payload.turns.length === 0) {
+      showToast('No active conversation detected to preview.');
+      return;
+    }
+
+    // Synthesize preview slides from turns
+    const title = payload.title.replace(/^ChatGPT - | - Claude| - Gemini/i, '').trim();
+    previewSlides = [
+      {
+        tag: 'EXECUTIVE COVER',
+        title: title,
+        subtitle: `Synthesized presentation from ${payload.turns.length} conversation turns on ${payload.platform}.`,
+        bullets: [
+          'High-Isolation Architecture & Strategic Direction',
+          'Verbatim grounded turns mapped to slide evidence ledger',
+          'Executive visual hierarchy ready for 16:9 PowerPoint export'
+        ]
+      }
+    ];
+
+    payload.turns.filter(t => t.role === 'assistant').slice(0, 6).forEach((turn, idx) => {
+      const heading = (turn.headings && turn.headings[0]) || `Strategic Architectural Pillar ${idx + 1}`;
+      const bullets = (turn.bullets && turn.bullets.length > 0) 
+        ? turn.bullets.slice(0, 3) 
+        : turn.text.split('\n').filter(l => l.trim().length > 15).slice(0, 3);
+
+      previewSlides.push({
+        tag: `PILLAR 0${idx + 1}`,
+        title: heading,
+        subtitle: `Key operational conclusions discussed in Turn #${turn.index || idx + 1}.`,
+        bullets: bullets.map(b => b.replace(/^\*+\s*/, '').slice(0, 140))
+      });
+    });
+
+    previewActiveIdx = 0;
+    const titleEl = document.getElementById('deckmind-preview-deck-title');
+    if (titleEl) titleEl.textContent = title;
+
+    if (previewOverlayEl) {
+      previewOverlayEl.classList.add('active');
+      renderPreviewSlide();
+    }
+  }
+
+  function renderPreviewSlide() {
+    const canvas = document.getElementById('deckmind-preview-canvas');
+    const indicator = document.getElementById('deckmind-preview-indicator');
+    if (!canvas || !previewSlides || previewSlides.length === 0) return;
+
+    const s = previewSlides[previewActiveIdx];
+    if (!s) return;
+
+    if (indicator) {
+      indicator.textContent = `Slide ${previewActiveIdx + 1} of ${previewSlides.length}`;
+    }
+
+    canvas.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">
+        <div>
+          <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 800; font-family: monospace; background: #FFF1F2; color: #BE185D; margin-bottom: 8px;">
+            ${escapeSafe(s.tag)}
+          </span>
+          <h2 style="font-size: 22px; font-weight: 800; color: #18181B; margin: 0 0 6px 0; letter-spacing: -0.3px;">
+            ${escapeSafe(s.title)}
+          </h2>
+          <p style="font-size: 13px; color: #52525B; margin: 0 0 16px 0;">
+            ${escapeSafe(s.subtitle || '')}
+          </p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 8px;">
+          ${(s.bullets || []).map((b, i) => `
+            <div style="background: #FAF7F2; border: 1.5px solid #18181B; border-radius: 8px; padding: 12px; box-shadow: 2px 2px 0px #18181B;">
+              <span style="font-size: 11px; font-weight: 800; font-family: monospace; color: #FB7185;">0${i + 1}</span>
+              <p style="font-size: 12px; font-weight: 600; color: #18181B; margin: 4px 0 0 0; line-height: 1.35;">${escapeSafe(b)}</p>
+            </div>
+          `).join('')}
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 10.5px; font-family: monospace; color: #A1A1AA; border-top: 1px solid #EAE5DD; padding-top: 6px;">
+          <span>DECKMIND AI • IN-PAGE PREVIEW</span>
+          <span>16:9 EXECUTIVE FORMAT</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function escapeSafe(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /**
    * Action 1: Instant Quick PPTX Download
    */
   async function triggerQuickPPTX() {
@@ -408,9 +662,7 @@
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         await chrome.storage.local.set({ activeChatData: payload, currentDeckPayload: null });
         chrome.runtime.sendMessage({ action: 'OPEN_STUDIO', autoDownload: 'pptx' }, () => {
-          if (chrome.runtime.lastError) {
-            // Extension context refreshed
-          }
+          if (chrome.runtime.lastError) {}
         });
       }
     } catch (err) {
@@ -444,31 +696,7 @@
   }
 
   /**
-   * Action 3: Instant Quick Excel Spreadsheet (.xlsx)
-   */
-  async function triggerQuickXLSX() {
-    showToast('Extracting Tables to Excel (.xlsx)...');
-    try {
-      const payload = packageCurrentChat();
-      if (!payload.turns || payload.turns.length === 0) {
-        showToast('No active conversation detected.');
-        return;
-      }
-
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        await chrome.storage.local.set({ activeChatData: payload, currentDeckPayload: null });
-        chrome.runtime.sendMessage({ action: 'OPEN_STUDIO', autoDownload: 'xlsx' }, () => {
-          if (chrome.runtime.lastError) {}
-        });
-      }
-    } catch (err) {
-      console.error('[DeckMind AI] Quick XLSX trigger error:', err);
-      showToast('Excel export notice: ' + err.message);
-    }
-  }
-
-  /**
-   * Action 4: Open Deck Studio
+   * Action 3: Open Deck Studio
    */
   async function triggerOpenStudio() {
     showToast('Launching DeckMind Studio...');
@@ -487,7 +715,7 @@
   }
 
   /**
-   * Action 3: Teleport and Highlight Turn Element
+   * Teleport and Highlight Turn Element
    */
   function highlightTurn(turnIndex) {
     try {
@@ -540,7 +768,11 @@
         return m.target && (
           m.target.id === 'deckmind-hud-container' ||
           m.target.id === 'deckmind-toast' ||
-          (m.target.closest && m.target.closest('#deckmind-hud-container'))
+          m.target.id === 'deckmind-preview-overlay' ||
+          (m.target.closest && (
+            m.target.closest('#deckmind-hud-container') ||
+            m.target.closest('#deckmind-preview-overlay')
+          ))
         );
       });
 

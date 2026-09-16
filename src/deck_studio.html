@@ -39,10 +39,21 @@
     </div>
 
     <div class="header-right">
+      <div class="quick-action-group">
+        <button class="header-btn retro-btn" id="btn-copy-slide-img" title="Copy Active Slide to Clipboard as High-Res PNG Image">
+          <span>📷 Copy PNG</span>
+        </button>
+        <button class="header-btn retro-btn" id="btn-export-html" title="Download Standalone Offline Interactive HTML Deck">
+          <span>🌐 HTML Deck</span>
+        </button>
+        <button class="header-btn retro-btn" id="btn-social-card" title="Generate Viral 1200x630 Social Preview Card">
+          <span>✨ Social Card</span>
+        </button>
+      </div>
       <button class="header-btn retro-btn" id="btn-rehearsal-mode" title="Rehearse Presentation with Speaking Timer">
         <span>Rehearse</span>
       </button>
-      <button class="header-btn retro-btn" id="btn-present-mode" title="Fullscreen Slideshow">
+      <button class="header-btn retro-btn" id="btn-present-mode" title="Fullscreen Slideshow [Space / Arrows]">
         <span>Present</span>
       </button>
       <div class="export-btn-group">
@@ -95,6 +106,8 @@
         <button class="layout-pill-btn" data-layout="split_comparison">Split</button>
         <button class="layout-pill-btn" data-layout="metrics_kpi">Metrics</button>
         <button class="layout-pill-btn" data-layout="timeline_steps">Roadmap</button>
+        <button class="layout-pill-btn" data-layout="quad_matrix">2x2 Matrix</button>
+        <button class="layout-pill-btn" data-layout="quote_callout">Pull Quote</button>
         <button class="layout-pill-btn" data-layout="citations_sources">Citations</button>
         <button class="layout-pill-btn" data-layout="conclusion">Action</button>
       </div>
@@ -381,6 +394,9 @@
       <button class="review-btn dismiss" id="btn-review-dismiss" title="Dismiss">✕</button>
     </div>
   </div>
+
+  <!-- Confetti Celebration Overlay Canvas -->
+  <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 2147483647; display: none;"></canvas>
 
   <script src="lib/jszip.min.js"></script>
   <script src="lib/pptxgen.bundle.js"></script>

@@ -664,6 +664,179 @@
   };
 
   // Export for browser and node
+  /**
+   * Generate 2x2 Strategic Matrix SVG preview
+   */
+  DeckMindVisual.generateQuadMatrixSVG = function (themeId, quadrants, width = 300, height = 170) {
+    const t = DeckMindVisual.getTheme(themeId);
+    const quads = (quadrants && quadrants.length >= 4) ? quadrants : [
+      { title: 'Immediate P0', badge: 'P0' },
+      { title: 'Strategic Moat', badge: 'P1' },
+      { title: 'Hygiene & Foundation', badge: 'P2' },
+      { title: 'Exploratory Innovation', badge: 'P3' }
+    ];
+
+    const halfW = (width - 36) / 2;
+    const halfH = (height - 40) / 2;
+    const x1 = 14, x2 = 14 + halfW + 8;
+    const y1 = 28, y2 = 28 + halfH + 6;
+    const coords = [[x1, y1], [x2, y1], [x1, y2], [x2, y2]];
+
+    let quadsSvg = quads.slice(0, 4).map((q, idx) => {
+      const [qx, qy] = coords[idx];
+      const isPri = idx === 0 || idx === 1;
+      return `
+        <rect x="${qx}" y="${qy}" width="${halfW}" height="${halfH}" rx="6" fill="${t.cardBg}" stroke="${isPri ? t.accentPrimary : t.cardBorder}" stroke-width="1.5"/>
+        <rect x="${qx + 6}" y="${qy + 6}" width="28" height="14" rx="3" fill="${isPri ? t.badgeBg : t.bg}"/>
+        <text x="${qx + 20}" y="${qy + 16}" fill="${isPri ? t.badgeText : t.textSecondary}" font-family="monospace" font-size="6.5" font-weight="bold" text-anchor="middle">${escapeXml(q.badge || `Q${idx + 1}`)}</text>
+        <text x="${qx + 8}" y="${qy + halfH - 10}" fill="${t.textPrimary}" font-family="sans-serif" font-size="7.5" font-weight="bold">${escapeXml((q.title || '').slice(0, 15))}</text>
+      `;
+    }).join('');
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+      <rect width="${width}" height="${height}" rx="8" fill="${t.bg}" stroke="${t.cardBorder}" stroke-width="1"/>
+      <text x="12" y="16" fill="${t.textMuted || t.textSecondary}" font-family="monospace" font-size="8" font-weight="bold">2x2 STRATEGIC MATRIX</text>
+      ${quadsSvg}
+    </svg>`;
+  };
+
+  /**
+   * High-Resolution 16:9 Canvas Slide Rasterizer
+   * Renders any slide into a crisp HTML5 Canvas for 1-click clipboard copy or image download.
+   */
+  DeckMindVisual.rasterizeSlideToCanvas = function (slide, themeId = 'rose_cream', width = 1920, height = 1080) {
+    if (typeof document === 'undefined') return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const t = DeckMindVisual.getTheme(themeId);
+
+    // Background
+    ctx.fillStyle = t.bg;
+    ctx.fillRect(0, 0, width, height);
+
+    // Outer framing border
+    ctx.strokeStyle = t.cardBorder;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(20, 20, width - 40, height - 40);
+
+    // Header Tag Badge
+    const tag = (slide.badgeTag || 'EXECUTIVE BRIEF').toUpperCase();
+    drawRoundRect(ctx, 80, 70, 280, 44, 8, t.badgeBg, t.accentPrimary, 2);
+    ctx.fillStyle = t.badgeText;
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText(tag, 100, 98);
+
+    // Title
+    ctx.fillStyle = t.textPrimary;
+    ctx.font = 'bold 44px sans-serif';
+    ctx.fillText((slide.title || 'Slide Title').slice(0, 50), 80, 175);
+
+    // Subtitle
+    if (slide.subtitle) {
+      ctx.fillStyle = t.textSecondary;
+      ctx.font = '22px sans-serif';
+      ctx.fillText(slide.subtitle.slice(0, 100), 80, 220);
+    }
+
+    // Body by Type
+    if (slide.type === 'hero_title' || slide.type === 'architecture_blueprint') {
+      const items = (slide.items || []).slice(0, 3);
+      items.forEach((item, idx) => {
+        const cy = 280 + idx * 160;
+        drawRoundRect(ctx, 80, cy, 780, 135, 12, t.cardBg, t.shadowColor, 3, true, t.shadowColor);
+        drawRoundRect(ctx, 80, cy, 780, 10, [12, 12, 0, 0], idx % 2 === 0 ? t.accentPrimary : t.shadowColor, null);
+        ctx.fillStyle = t.textPrimary;
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillText(`0${idx + 1}. ${(item.title || '').slice(0, 38)}`, 110, cy + 50);
+        ctx.fillStyle = t.textSecondary;
+        ctx.font = '18px sans-serif';
+        ctx.fillText((item.desc || '').slice(0, 60), 110, cy + 90);
+      });
+
+      drawRoundRect(ctx, 920, 280, 920, 620, 16, t.cardBg, t.shadowColor, 4, true, t.shadowColor);
+      drawRoundRect(ctx, 920, 280, 920, 48, [16, 16, 0, 0], t.shadowColor, null);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 20px monospace';
+      ctx.fillText('TOPOLOGY BLUEPRINT // ' + (slide.title || '').slice(0, 36).toUpperCase(), 950, 312);
+
+      const diagCanvas = document.createElement('canvas');
+      diagCanvas.width = 880;
+      diagCanvas.height = 540;
+      const dctx = diagCanvas.getContext('2d');
+      if (dctx) {
+        drawArchitectureOnCanvas(dctx, t, { title: slide.title }, 880, 540);
+        ctx.drawImage(diagCanvas, 940, 340, 880, 540);
+      }
+    } else if (slide.type === 'metrics_kpi') {
+      const metrics = slide.metrics || [
+        { value: '99.9%', label: 'Availability SLA' },
+        { value: '< 12ms', label: 'Processing Latency' },
+        { value: '10x', label: 'Throughput Multiplier' }
+      ];
+      const mWidth = (width - 160 - 40) / 3;
+      metrics.forEach((m, idx) => {
+        const mx = 80 + idx * (mWidth + 20);
+        drawRoundRect(ctx, mx, 280, mWidth, 240, 14, t.cardBg, t.shadowColor, 3, true, t.shadowColor);
+        drawRoundRect(ctx, mx, 280, mWidth, 12, [14, 14, 0, 0], t.accentPrimary, null);
+        ctx.fillStyle = t.accentHighlight;
+        ctx.font = 'bold 64px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(m.value || '100%', mx + mWidth / 2, 400);
+        ctx.fillStyle = t.textSecondary;
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText(m.label || 'Metric', mx + mWidth / 2, 450);
+        ctx.textAlign = 'left';
+      });
+
+      const items = (slide.items || []).slice(0, 3);
+      items.forEach((item, idx) => {
+        const cx = 80 + idx * (mWidth + 20);
+        drawRoundRect(ctx, cx, 560, mWidth, 340, 12, t.cardBg, t.shadowColor, 3, true, t.shadowColor);
+        ctx.fillStyle = t.textPrimary;
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText((item.title || '').slice(0, 30), cx + 30, 620);
+        ctx.fillStyle = t.textSecondary;
+        ctx.font = '18px sans-serif';
+        ctx.fillText((item.desc || '').slice(0, 40), cx + 30, 670);
+      });
+    } else {
+      const items = (slide.items || []).slice(0, 3);
+      const cWidth = (width - 160 - 50) / 3;
+      items.forEach((item, idx) => {
+        const cx = 80 + idx * (cWidth + 25);
+        drawRoundRect(ctx, cx, 280, cWidth, 620, 16, t.cardBg, t.shadowColor, 4, true, t.shadowColor);
+        drawRoundRect(ctx, cx, 280, cWidth, 16, [16, 16, 0, 0], idx % 2 === 0 ? t.accentPrimary : t.shadowColor, null);
+        ctx.fillStyle = t.accentPrimary;
+        ctx.font = 'bold 28px monospace';
+        ctx.fillText(`0${idx + 1}`, cx + 36, 350);
+        ctx.fillStyle = t.textPrimary;
+        ctx.font = 'bold 28px sans-serif';
+        ctx.fillText((item.title || '').slice(0, 24), cx + 36, 410);
+        ctx.fillStyle = t.textSecondary;
+        ctx.font = '20px sans-serif';
+        const desc = item.desc || '';
+        ctx.fillText(desc.slice(0, 34), cx + 36, 480);
+        ctx.fillText(desc.slice(34, 70), cx + 36, 515);
+        ctx.fillText(desc.slice(70, 110), cx + 36, 550);
+      });
+    }
+
+    // Footer
+    ctx.fillStyle = t.textMuted;
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText('DECKMIND AI // VERBATIM GROUNDED PRESENTATION SUITE', 80, height - 60);
+    ctx.textAlign = 'right';
+    ctx.fillText('16:9 EXECUTIVE FORMAT', width - 80, height - 60);
+    ctx.textAlign = 'left';
+
+    return canvas;
+  };
+
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = DeckMindVisual;
   } else {

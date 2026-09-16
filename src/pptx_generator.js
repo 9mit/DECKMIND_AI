@@ -138,10 +138,18 @@
         case 'citations_sources':
           renderCitationsSlide(slide, sData, colors);
           break;
+        case 'quad_matrix':
+          renderQuadMatrixSlide(slide, sData, colors);
+          break;
+        case 'quote_callout':
+          renderQuoteCalloutSlide(slide, sData, colors);
+          break;
+        case 'conclusion':
+          renderConclusionSlide(slide, sData, colors);
+          break;
         case 'three_card_grid':
         case 'executive_summary':
         case 'knowledge_graph':
-        case 'conclusion':
         default:
           renderStandardCardSlide(slide, sData, colors, themeId, Visual);
           break;
@@ -806,6 +814,260 @@
         fontSize: 11.5,
         color: c.textSecondaryHex,
         fontFace: 'Segoe UI'
+      });
+    });
+  }
+
+  /* =========================================================================
+   * 8. 2x2 STRATEGIC MATRIX SLIDE
+   * ========================================================================= */
+  function renderQuadMatrixSlide(slide, sData, c) {
+    addSlideHeader(slide, sData, c);
+
+    const quads = sData.quadrants || [
+      { title: 'Immediate P0', desc: 'Core architecture and immediate delivery wins.', badge: 'P0 IMMEDIATE' },
+      { title: 'Strategic Moat', desc: 'High-impact defensibility and scale mechanisms.', badge: 'P1 STRATEGIC' },
+      { title: 'Hygiene & Foundation', desc: 'Security, testing, and continuous deployment baseline.', badge: 'P2 FOUNDATIONAL' },
+      { title: 'Exploratory Innovation', desc: 'Autonomous experimentation and emerging horizons.', badge: 'P3 EXPLORATORY' }
+    ];
+
+    const halfW = 5.65;
+    const cardH = 2.2;
+    const x1 = 0.8, x2 = 6.85;
+    const y1 = 2.15, y2 = 4.6;
+    const pos = [[x1, y1], [x2, y1], [x1, y2], [x2, y2]];
+
+    quads.slice(0, 4).forEach((q, idx) => {
+      const [qx, qy] = pos[idx];
+      const isPri = idx === 0 || idx === 1;
+
+      slide.addShape('roundRect', {
+        x: qx,
+        y: qy,
+        w: halfW,
+        h: cardH,
+        rectRadius: 0.08,
+        fill: { color: c.cardBgHex },
+        line: { color: isPri ? c.primaryHex : c.darkHex, width: isPri ? 2 : 1.5 }
+      });
+
+      // Badge
+      slide.addShape('roundRect', {
+        x: qx + 0.25,
+        y: qy + 0.2,
+        w: 1.8,
+        h: 0.28,
+        rectRadius: 0.05,
+        fill: { color: isPri ? c.lightPinkHex : 'F4F4F5' }
+      });
+      slide.addText(q.badge || `QUADRANT 0${idx + 1}`, {
+        x: qx + 0.25,
+        y: qy + 0.22,
+        w: 1.8,
+        h: 0.24,
+        fontSize: 9,
+        bold: true,
+        color: isPri ? c.pinkDarkTextHex : c.textSecondaryHex,
+        align: 'center',
+        fontFace: 'monospace'
+      });
+
+      // Title
+      slide.addText(q.title || 'Quadrant Focus', {
+        x: qx + 0.25,
+        y: qy + 0.58,
+        w: halfW - 0.5,
+        h: 0.4,
+        fontSize: 13.5,
+        bold: true,
+        color: c.textPrimaryHex,
+        fontFace: 'Segoe UI'
+      });
+
+      // Desc
+      slide.addText(q.desc || '', {
+        x: qx + 0.25,
+        y: qy + 1.0,
+        w: halfW - 0.5,
+        h: 1.0,
+        fontSize: 10.5,
+        color: c.textSecondaryHex,
+        fontFace: 'Segoe UI'
+      });
+    });
+  }
+
+  /* =========================================================================
+   * 9. EDITORIAL PULL-QUOTE CALLOUT SLIDE
+   * ========================================================================= */
+  function renderQuoteCalloutSlide(slide, sData, c) {
+    addSlideHeader(slide, sData, c);
+
+    const cardW = 10.5;
+    const cardH = 4.2;
+    const xPos = 1.4;
+    const yPos = 2.3;
+
+    slide.addShape('roundRect', {
+      x: xPos,
+      y: yPos,
+      w: cardW,
+      h: cardH,
+      rectRadius: 0.12,
+      fill: { color: c.cardBgHex },
+      line: { color: c.darkHex, width: 2 }
+    });
+
+    slide.addShape('roundRect', {
+      x: xPos,
+      y: yPos,
+      w: cardW,
+      h: 0.1,
+      rectRadius: 0.05,
+      fill: { color: c.primaryHex }
+    });
+
+    // Decorative Quote Mark
+    slide.addText('“', {
+      x: xPos + 0.5,
+      y: yPos + 0.3,
+      w: 1.0,
+      h: 0.8,
+      fontSize: 54,
+      color: c.primaryHex,
+      fontFace: 'Georgia'
+    });
+
+    // Quote text
+    slide.addText(sData.quote || `"${sData.title}"`, {
+      x: xPos + 0.8,
+      y: yPos + 1.0,
+      w: cardW - 1.6,
+      h: 1.8,
+      fontSize: 18,
+      italic: true,
+      bold: true,
+      color: c.textPrimaryHex,
+      align: 'center',
+      fontFace: 'Georgia'
+    });
+
+    // Author
+    slide.addText(`— ${sData.author || 'Executive Strategic Directive'}`, {
+      x: xPos + 0.8,
+      y: yPos + 3.0,
+      w: cardW - 1.6,
+      h: 0.35,
+      fontSize: 13,
+      bold: true,
+      color: c.darkHex,
+      align: 'center',
+      fontFace: 'Segoe UI'
+    });
+
+    slide.addText(sData.role || 'Session Synthesis', {
+      x: xPos + 0.8,
+      y: yPos + 3.4,
+      w: cardW - 1.6,
+      h: 0.3,
+      fontSize: 10,
+      color: c.textMutedHex,
+      align: 'center',
+      fontFace: 'monospace'
+    });
+  }
+
+  /* =========================================================================
+   * 10. STRATEGIC CONCLUSION & ACTION PLAN SLIDE
+   * ========================================================================= */
+  function renderConclusionSlide(slide, sData, c) {
+    addSlideHeader(slide, sData, c);
+
+    const items = sData.items || [
+      { title: '1. Finalize Technical Specifications', desc: 'Confirm component interfaces and resource quotas with leads.' },
+      { title: '2. Kick Off Phase 1 Engineering', desc: 'Initialize core repos and begin foundational sprint development.' },
+      { title: '3. Establish Telemetry Review', desc: 'Set up real-time observability dashboards and milestone tracking.' }
+    ];
+
+    const colW = 3.65;
+    const gap = 0.38;
+    const yPos = 2.15;
+    const cardH = 4.65;
+
+    items.slice(0, 3).forEach((item, idx) => {
+      const xPos = 0.8 + idx * (colW + gap);
+
+      slide.addShape('roundRect', {
+        x: xPos,
+        y: yPos,
+        w: colW,
+        h: cardH,
+        rectRadius: 0.1,
+        fill: { color: c.cardBgHex },
+        line: { color: c.darkHex, width: 1.5 }
+      });
+
+      slide.addShape('roundRect', {
+        x: xPos,
+        y: yPos,
+        w: colW,
+        h: 0.08,
+        rectRadius: 0.04,
+        fill: { color: c.primaryHex }
+      });
+
+      // Action Step Badge
+      slide.addShape('roundRect', {
+        x: xPos + 0.25,
+        y: yPos + 0.3,
+        w: 1.4,
+        h: 0.3,
+        rectRadius: 0.06,
+        fill: { color: c.lightPinkHex }
+      });
+      slide.addText(`ACTION 0${idx + 1}`, {
+        x: xPos + 0.25,
+        y: yPos + 0.34,
+        w: 1.4,
+        h: 0.22,
+        fontSize: 9.5,
+        bold: true,
+        color: c.pinkDarkTextHex,
+        align: 'center',
+        fontFace: 'monospace'
+      });
+
+      slide.addText(item.title || 'Next Step', {
+        x: xPos + 0.25,
+        y: yPos + 0.8,
+        w: colW - 0.5,
+        h: 0.8,
+        fontSize: 14.5,
+        bold: true,
+        color: c.textPrimaryHex,
+        fontFace: 'Segoe UI'
+      });
+
+      slide.addText(item.desc || '', {
+        x: xPos + 0.25,
+        y: yPos + 1.7,
+        w: colW - 0.5,
+        h: 2.2,
+        fontSize: 11.5,
+        color: c.textSecondaryHex,
+        fontFace: 'Segoe UI'
+      });
+
+      // Status Pill
+      slide.addText('STATUS: READY FOR KICKOFF', {
+        x: xPos + 0.25,
+        y: yPos + cardH - 0.45,
+        w: colW - 0.5,
+        h: 0.3,
+        fontSize: 9,
+        bold: true,
+        color: c.primaryHex,
+        fontFace: 'monospace'
       });
     });
   }

@@ -28,6 +28,7 @@
   }
 
   function downloadBlob(blob, filename) {
+    if (typeof document === 'undefined' || !document.body) return filename;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -35,9 +36,12 @@
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
-      document.body.removeChild(a);
+      if (document.body && document.body.contains(a)) {
+        document.body.removeChild(a);
+      }
       URL.revokeObjectURL(url);
     }, 1000);
+    return filename;
   }
 
   /* =========================================================================
@@ -773,6 +777,198 @@
     const filename = `${sanitizeFilename(title)}_Flowchart.svg`;
     downloadBlob(blob, filename);
     return filename;
+  };
+
+  /* =========================================================================
+   * 5. STANDALONE OFFLINE INTERACTIVE HTML PRESENTATION DECK
+   * ========================================================================= */
+  DeckMindExport.generateStandaloneHtmlDeck = function (deck) {
+    const title = escapeXml(deck.title || 'Executive Presentation');
+    const slidesJson = JSON.stringify(deck.slides || []);
+    const themeJson = JSON.stringify(deck.theme || 'rose_cream');
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} — DeckMind AI Presentation</title>
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --card-bg: #FFFFFF;
+      --text: #18181B;
+      --text-sec: #52525B;
+      --accent: #FB7185;
+      --border: #18181B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      height: 52px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--border);
+      background: #FFFFFF;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; }
+    .brand-logo { width: 24px; height: 24px; background: #18181B; color: #FB7185; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    .deck-title { font-size: 13.5px; font-weight: 700; }
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .slide-frame {
+      width: 100%;
+      max-width: 1080px;
+      aspect-ratio: 16 / 9;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 6px 6px 0px var(--border);
+      padding: 36px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    footer {
+      height: 52px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 2px solid var(--border);
+      background: #FFFFFF;
+    }
+    .btn {
+      padding: 6px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #FFFFFF;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0px var(--border);
+      transition: all 0.15s;
+    }
+    .btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0px var(--border); }
+    .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px var(--border); }
+    .btn.primary { background: var(--accent); color: #FFFFFF; }
+    .indicator { font-family: monospace; font-size: 12px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">DM</div>
+      <span>DeckMind AI</span>
+    </div>
+    <span class="deck-title">${title}</span>
+    <button class="btn" id="btn-fs">Fullscreen [F]</button>
+  </header>
+  <main>
+    <div class="slide-frame" id="slide-frame">
+      <!-- Active slide rendered here -->
+    </div>
+  </main>
+  <footer>
+    <button class="btn" id="btn-prev">◀ Previous [Left]</button>
+    <span class="indicator" id="indicator">Slide 1 of 8</span>
+    <button class="btn primary" id="btn-next">Next [Space / Right] ▶</button>
+  </footer>
+  <script>
+    const slides = ${slidesJson};
+    let activeIdx = 0;
+
+    function renderSlide() {
+      const frame = document.getElementById('slide-frame');
+      const ind = document.getElementById('indicator');
+      const s = slides[activeIdx];
+      if (!s) return;
+      ind.textContent = 'Slide ' + (activeIdx + 1) + ' of ' + slides.length;
+
+      let itemsHtml = '';
+      if (s.items && s.items.length > 0) {
+        itemsHtml = '<div style="display: grid; grid-template-columns: repeat(' + Math.min(s.items.length, 3) + ', 1fr); gap: 16px; margin-top: 24px;">' +
+          s.items.slice(0, 3).map((it, i) => 
+            '<div style="background: #FAF7F2; border: 1.5px solid #18181B; border-radius: 10px; padding: 16px; box-shadow: 3px 3px 0px #18181B;">' +
+              '<div style="font-size: 11px; font-weight: 800; font-family: monospace; color: #FB7185;">0' + (i + 1) + '</div>' +
+              '<div style="font-size: 14px; font-weight: 800; margin: 4px 0 6px 0;">' + (it.title || '') + '</div>' +
+              '<div style="font-size: 12px; color: #52525B; line-height: 1.4;">' + (it.desc || '') + '</div>' +
+            '</div>'
+          ).join('') +
+        '</div>';
+      }
+
+      frame.innerHTML = 
+        '<div>' +
+          '<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 800; font-family: monospace; background: #FFF1F2; color: #BE185D; margin-bottom: 8px;">' + (s.badgeTag || 'EXECUTIVE BRIEF') + '</span>' +
+          '<h1 style="font-size: 28px; font-weight: 800; color: #18181B; margin-bottom: 6px;">' + (s.title || '') + '</h1>' +
+          '<p style="font-size: 14px; color: #52525B;">' + (s.subtitle || '') + '</p>' +
+        '</div>' +
+        itemsHtml +
+        '<div style="display: flex; justify-content: space-between; font-size: 11px; font-family: monospace; color: #A1A1AA; border-top: 1px solid #EAE5DD; padding-top: 8px;">' +
+          '<span>DECKMIND AI • VERBATIM GROUNDED</span>' +
+          '<span>16:9 EXECUTIVE FORMAT</span>' +
+        '</div>';
+    }
+
+    document.getElementById('btn-prev').onclick = () => { if (activeIdx > 0) { activeIdx--; renderSlide(); } };
+    document.getElementById('btn-next').onclick = () => { if (activeIdx < slides.length - 1) { activeIdx++; renderSlide(); } };
+    document.getElementById('btn-fs').onclick = () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    };
+
+    window.onkeydown = (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        if (activeIdx < slides.length - 1) { activeIdx++; renderSlide(); }
+      } else if (e.key === 'ArrowLeft') {
+        if (activeIdx > 0) { activeIdx--; renderSlide(); }
+      } else if (e.key === 'f' || e.key === 'F') {
+        document.getElementById('btn-fs').click();
+      }
+    };
+
+    renderSlide();
+  <\/script>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const filename = `${sanitizeFilename(deck.title || 'Presentation')}_DeckMind.html`;
+    downloadBlob(blob, filename);
+    return filename;
+  };
+
+  /* =========================================================================
+   * 6. VIRAL SOCIAL PREVIEW CARD GENERATOR (1200x630)
+   * ========================================================================= */
+  DeckMindExport.downloadSocialCard = function (deck) {
+    if (typeof document === 'undefined') return;
+    const slide = (deck.slides && deck.slides[0]) || { title: deck.title || 'Executive Presentation' };
+    const Visual = (typeof root.DeckMindVisual !== 'undefined') ? root.DeckMindVisual : null;
+
+    if (Visual && Visual.rasterizeSlideToCanvas) {
+      const canvas = Visual.rasterizeSlideToCanvas(slide, deck.theme || 'rose_cream', 1200, 630);
+      if (canvas && canvas.toBlob) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const filename = `${sanitizeFilename(deck.title || 'Social_Card')}_1200x630.png`;
+            downloadBlob(blob, filename);
+          }
+        }, 'image/png');
+      }
+    }
   };
 
   // Export for browser and node

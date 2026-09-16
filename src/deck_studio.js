@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnExportTxt = document.getElementById('btn-export-txt');
   const btnPresentMode = document.getElementById('btn-present-mode');
   const btnRehearsalMode = document.getElementById('btn-rehearsal-mode');
+  const btnCopySlideImg = document.getElementById('btn-copy-slide-img');
+  const btnExportHtml = document.getElementById('btn-export-html');
+  const btnSocialCard = document.getElementById('btn-social-card');
   const layoutPillBtns = document.querySelectorAll('.layout-pill-btn');
 
   // Multi-Format Tab Elements
@@ -614,6 +617,84 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         `;
         break;
+
+      case 'quad_matrix':
+        const quads = slide.quadrants || [
+          { title: 'Immediate P0', desc: 'Core architecture and delivery wins.', badge: 'P0 IMMEDIATE' },
+          { title: 'Strategic Moat', desc: 'High-impact defensibility and scale.', badge: 'P1 STRATEGIC' },
+          { title: 'Hygiene & Baseline', desc: 'Security and CI/CD baseline.', badge: 'P2 FOUNDATIONAL' },
+          { title: 'Exploratory Scale', desc: 'Autonomous experimentation.', badge: 'P3 EXPLORATORY' }
+        ];
+        bodyHtml = `
+          <div>
+            <span class="slide-tag-badge" contenteditable="true" data-field="badgeTag">
+              ${escapeHtml(slide.badgeTag || 'STRATEGIC MATRIX (2x2)')}
+            </span>
+            <h2 class="slide-main-title editable-text" contenteditable="true" data-field="title">${escapeHtml(slide.title)}</h2>
+            <p class="slide-sub-title editable-text" contenteditable="true" data-field="subtitle">${escapeHtml(slide.subtitle || '')}</p>
+          </div>
+          <div class="quad-grid">
+            ${quads.map((q, idx) => `
+              <div class="quad-card" style="background: ${theme.bg};">
+                <div class="quad-header">
+                  <span class="quad-badge" style="background: ${idx < 2 ? theme.badgeBg : theme.cardBg}; color: ${idx < 2 ? theme.badgeText : theme.textSecondary};" contenteditable="true" data-quad-idx="${idx}" data-quad-field="badge">${escapeHtml(q.badge || `Q${idx + 1}`)}</span>
+                </div>
+                <div>
+                  <div class="quad-title" contenteditable="true" data-quad-idx="${idx}" data-quad-field="title">${escapeHtml(q.title)}</div>
+                  <p class="quad-desc" style="margin-top: 4px;" contenteditable="true" data-quad-idx="${idx}" data-quad-field="desc">${escapeHtml(q.desc)}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        break;
+
+      case 'quote_callout':
+        bodyHtml = `
+          <div>
+            <span class="slide-tag-badge" contenteditable="true" data-field="badgeTag">
+              ${escapeHtml(slide.badgeTag || 'EXECUTIVE THESIS')}
+            </span>
+          </div>
+          <div class="quote-container">
+            <div class="quote-mark">“</div>
+            <div class="quote-text editable-text" contenteditable="true" data-quote-field="quote">${escapeHtml(slide.quote || `"${slide.title}"`)}</div>
+            <div class="quote-author-wrap">
+              <span class="quote-author" contenteditable="true" data-quote-field="author">${escapeHtml(slide.author || 'Executive Strategic Directive')}</span>
+              <span class="quote-role" contenteditable="true" data-quote-field="role">${escapeHtml(slide.role || 'Session Synthesis')}</span>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'conclusion':
+        const actionItems = slide.items || [
+          { title: '1. Finalize Technical Specifications', desc: 'Confirm component interfaces and resource quotas with leads.' },
+          { title: '2. Kick Off Phase 1 Engineering', desc: 'Initialize core repos and begin foundational sprint development.' },
+          { title: '3. Establish Telemetry Review', desc: 'Set up real-time observability dashboards and milestone tracking.' }
+        ];
+        bodyHtml = `
+          <div>
+            <span class="slide-tag-badge" contenteditable="true" data-field="badgeTag">
+              ${escapeHtml(slide.badgeTag || 'STRATEGIC NEXT STEPS')}
+            </span>
+            <h2 class="slide-main-title editable-text" contenteditable="true" data-field="title">${escapeHtml(slide.title)}</h2>
+            <p class="slide-sub-title editable-text" contenteditable="true" data-field="subtitle">${escapeHtml(slide.subtitle || '')}</p>
+          </div>
+          <div class="action-plan-grid">
+            ${actionItems.map((item, idx) => `
+              <div class="action-plan-card" style="background: ${theme.bg};">
+                <div>
+                  <span class="action-step-num">ACTION 0${idx + 1}</span>
+                  <div class="action-card-title" contenteditable="true" data-card-idx="${idx}" data-card-field="title">${escapeHtml(item.title)}</div>
+                  <p class="action-card-desc" contenteditable="true" data-card-idx="${idx}" data-card-field="desc">${escapeHtml(item.desc)}</p>
+                </div>
+                <div style="font-size: 11px; font-weight: 700; color: ${theme.accentPrimary}; margin-top: 10px; font-family: monospace;">STATUS: READY FOR KICKOFF</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        break;
     }
 
     slideFrame.innerHTML = bodyHtml;
@@ -633,6 +714,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const splitSide = el.getAttribute('data-split-side');
         const splitTitle = el.getAttribute('data-split-title');
         const splitIdx = el.getAttribute('data-split-idx');
+        const quadIdx = el.getAttribute('data-quad-idx');
+        const quadField = el.getAttribute('data-quad-field');
+        const quoteField = el.getAttribute('data-quote-field');
 
         if (field) {
           slide[field] = el.textContent.trim();
@@ -656,6 +740,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (slide.citationsList && slide.citationsList[cIdx]) {
             slide.citationsList[cIdx][citationField] = el.textContent.trim().replace(/^"|"$/g, '');
           }
+        } else if (quadIdx !== null && quadField) {
+          const qIdx = parseInt(quadIdx, 10);
+          if (slide.quadrants && slide.quadrants[qIdx]) {
+            slide.quadrants[qIdx][quadField] = el.textContent.trim();
+          }
+        } else if (quoteField) {
+          slide[quoteField] = el.textContent.trim();
         } else if (splitSide && splitTitle) {
           const target = splitSide === 'left' ? slide.leftCard : slide.rightCard;
           if (target) target.title = el.textContent.trim();
@@ -1146,11 +1237,131 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  /* =========================================================================
+   * CONFETTI CELEBRATION ENGINE (Zero External Dependencies)
+   * ========================================================================= */
+  function triggerConfettiCelebration() {
+    const canvas = document.getElementById('confetti-canvas');
+    if (!canvas) return;
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const colors = ['#FB7185', '#FDA4AF', '#F43F5E', '#10B981', '#60A5FA', '#FBBF24', '#A855F7'];
+    const particles = [];
+    for (let i = 0; i < 110; i++) {
+      particles.push({
+        x: window.innerWidth / 2 + (Math.random() - 0.5) * 300,
+        y: window.innerHeight / 2 - 120,
+        vx: (Math.random() - 0.5) * 18,
+        vy: (Math.random() - 0.8) * 18,
+        size: Math.random() * 8 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        vr: (Math.random() - 0.5) * 12,
+        life: 1
+      });
+    }
+
+    let start = null;
+    function frame(ts) {
+      if (!start) start = ts;
+      const elapsed = ts - start;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let alive = 0;
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.36;
+        p.rotation += p.vr;
+        p.life -= 0.013;
+
+        if (p.life > 0) {
+          alive++;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = Math.max(0, p.life);
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        }
+      });
+
+      if (alive > 0 && elapsed < 3500) {
+        requestAnimationFrame(frame);
+      } else {
+        canvas.style.display = 'none';
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // 1-Click Copy Slide as Image
+  if (btnCopySlideImg) {
+    btnCopySlideImg.addEventListener('click', async () => {
+      const slide = currentDeck.slides[activeSlideIndex];
+      if (!slide) return;
+      const origText = btnCopySlideImg.innerHTML;
+      btnCopySlideImg.innerHTML = '<span>Rendering...</span>';
+      try {
+        const canvas = window.DeckMindVisual.rasterizeSlideToCanvas(slide, activeTheme, 1920, 1080);
+        if (canvas && canvas.toBlob) {
+          canvas.toBlob(async (blob) => {
+            if (blob && navigator.clipboard && navigator.clipboard.write) {
+              try {
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                btnCopySlideImg.innerHTML = '<span>✔ Copied!</span>';
+                triggerConfettiCelebration();
+                setTimeout(() => { btnCopySlideImg.innerHTML = origText; }, 2000);
+                return;
+              } catch (clipErr) {}
+            }
+            // Fallback download if clipboard image is blocked by permissions
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${(slide.title || 'Slide').replace(/[^a-zA-Z0-9_-]/g, '_')}.png`;
+            a.click();
+            btnCopySlideImg.innerHTML = '<span>✔ Downloaded!</span>';
+            triggerConfettiCelebration();
+            setTimeout(() => { btnCopySlideImg.innerHTML = origText; }, 2000);
+          }, 'image/png');
+        }
+      } catch (err) {
+        console.warn('Copy slide image error:', err);
+        btnCopySlideImg.innerHTML = origText;
+      }
+    });
+  }
+
+  // Standalone HTML Deck Export
+  if (btnExportHtml) {
+    btnExportHtml.addEventListener('click', () => {
+      window.DeckMindExport.generateStandaloneHtmlDeck(currentDeck);
+      triggerConfettiCelebration();
+      recordExportAndCheckReviewPrompt('html');
+    });
+  }
+
+  // Social Preview Card (1200x630)
+  if (btnSocialCard) {
+    btnSocialCard.addEventListener('click', () => {
+      window.DeckMindExport.downloadSocialCard(currentDeck);
+      triggerConfettiCelebration();
+      recordExportAndCheckReviewPrompt('social');
+    });
+  }
+
   if (btnExportPptx) {
     btnExportPptx.addEventListener('click', async () => {
       btnExportPptx.textContent = 'Compiling PPTX...';
       try {
         await window.DeckMindPPTX.downloadPresentation(currentDeck);
+        triggerConfettiCelebration();
         recordExportAndCheckReviewPrompt('pptx');
       } catch (err) {
         console.error('[DeckMind Studio] PPTX export error:', err);
